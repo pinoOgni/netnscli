@@ -1,0 +1,45 @@
+namespaces:
+  - name: ns1
+    description: "Namespace 1"
+  - name: ns2
+    description: "Namespace 2"
+  - name: ns3
+    description: "Namespace 2"
+
+veth_pairs:
+  - name: veth-ns1-bridge
+    p1_ns: ns1
+    p1_name: veth-ns1
+    p1_ip_address: 192.168.1.1/24
+    p2_ns: default
+    p2_name: veth-bridge-ns1
+
+  - name: veth-ns2-bridge
+    p1_ns: ns2
+    p1_name: veth-ns2
+    p1_ip_address: 192.168.1.2/24
+    p2_ns: default
+    p2_name: veth-bridge-ns2
+
+  - name: veth-ns3-bridge
+    p1_ns: ns3
+    p1_name: veth-ns3
+    p1_ip_address: 192.168.1.3/24
+    p2_ns: default
+    p2_name: veth-bridge-ns3
+
+  - name: veth-ns1-ns3
+    p1_ns: ns1
+    p1_name: veth-ns1-ns3
+    p1_ip_address: 192.168.2.1/24
+    p2_ns: ns3
+    p2_name: veth-ns3-ns1
+    p2_ip_address: 192.168.2.1/24
+
+bridges:
+  - name: br0
+    description: "Bridge for connecting ns1, ns2, and ns3"
+    interfaces:
+      - veth-bridge-ns1
+      - veth-bridge-ns2
+      - veth-bridge-ns3
