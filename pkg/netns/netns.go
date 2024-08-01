@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"runtime"
 
 	"github.com/vishvananda/netns"
 	"golang.org/x/sys/unix"
@@ -13,9 +12,6 @@ import (
 const bindMountPath = "/run/netns"
 
 func CreateNamespace(nsName string) error {
-	// Lock the OS thread to ensure namespace operations are consistent
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
 
 	exists, err := namespaceExists(nsName)
 	if err != nil {
@@ -28,7 +24,8 @@ func CreateNamespace(nsName string) error {
 			return fmt.Errorf("cannot delete existing namespace: %v", err)
 		}
 	}
-	_, err = netns.NewNamed(nsName)
+	ns, err := netns.NewNamed(nsName)
+	defer ns.Close()
 	if err != nil {
 		return fmt.Errorf("cannot create namespace: %v", err)
 	}

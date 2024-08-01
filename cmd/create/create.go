@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/pinoOgni/netnscli/pkg/flags"
 	"github.com/pinoOgni/netnscli/pkg/netlink"
@@ -15,6 +16,7 @@ import (
 	vl "github.com/pinoOgni/netnscli/pkg/validator"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	netnsv "github.com/vishvananda/netns"
 )
 
 var (
@@ -61,10 +63,29 @@ var Cmd = &cobra.Command{
 		// }
 
 		// create namespaces
+		// Lock the OS thread to ensure namespace operations are consistent
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
+
+		// Save the current network namespace because the CreateNamespace will move
+		// the context on the created namespace
+
+		// TODO actually I don't think that this is needed.. only the defer close
+		// in the CreateNamespace should be the correct way
+		origNS, err := netnsv.Get()
+		if err != nil {
+			log.Fatalf("Failed to get current network namespace: %v", err)
+		}
+		defer origNS.Close()
 		for _, nsName := range testbed.Namespaces {
 			if err := netns.CreateNamespace(nsName.Name); err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			}
+		}
+		// Switch back to the original namespace
+		err = netnsv.Set(origNS)
+		if err != nil {
+			log.Fatalf("Failed to switch back to the original network namespace: %v", err)
 		}
 
 		// create and set up veths
@@ -72,8 +93,14 @@ var Cmd = &cobra.Command{
 			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
 		// create bridge
+		if err := netlink.CreateBridges(testbed.Bridges); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		}
 
-		// configure veths
+		// set up veths
+		if err := netlink.SetupVethPairs(testbed.VethPairs); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		}
 	},
 }
 

@@ -4,7 +4,7 @@ namespaces:
   - name: ns2
     description: "Namespace 2"
   - name: ns3
-    description: "Namespace 2"
+    description: "Namespace 3"
 
 veth_pairs:
   - name: veth-ns1-bridge
@@ -34,7 +34,7 @@ veth_pairs:
     p1_ip_address: 192.168.2.1/24
     p2_ns: ns3
     p2_name: veth-ns3-ns1
-    p2_ip_address: 192.168.2.1/24
+    p2_ip_address: 192.168.2.2/24
 
 bridges:
   - name: br0
