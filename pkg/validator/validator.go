@@ -10,6 +10,7 @@ const (
 // validationTagEndpointPort = "endpoint_port"
 )
 
+// TODO fix it, it does not work
 // ValidateConfiguration takes a configuration and validates it using the tags defined in the struct
 func ValidateConfiguration(configuration interface{}) error {
 	// Validate the Config struct

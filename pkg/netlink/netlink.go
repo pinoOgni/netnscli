@@ -71,17 +71,14 @@ func setVethNs(vethPair testbed.VethPair) error {
 	return nil
 }
 
-func CreateVethPairs(vethPairs []testbed.VethPair) error {
+func CreateVethPair(v testbed.VethPair) error {
 
-	for _, v := range vethPairs {
-		if err := createVethPair(v); err != nil {
-			return err
-		}
-		//time.Sleep(30 * time.Second)
-		// set the correct namespace for a given peer
-		setVethNs(v)
-
+	if err := createVethPair(v); err != nil {
+		return err
 	}
+	// set the correct namespace for a given peer
+	setVethNs(v)
+
 	return nil
 }
 
@@ -115,13 +112,27 @@ func createBridge(bridge testbed.Bridge) error {
 	return nil
 }
 
-func CreateBridges(bridges []testbed.Bridge) error {
+func CreateBridge(bridge testbed.Bridge) error {
+	if err := createBridge(bridge); err != nil {
+		return err
+	}
+	return nil
+}
 
-	for _, b := range bridges {
-		if err := createBridge(b); err != nil {
-			return err
-		}
+func deleteBridge(bridge testbed.Bridge) error {
+	link, err := netlink.LinkByName(bridge.Name)
+	if err != nil {
+		return fmt.Errorf("failed to get link %s: %v", bridge.Name, err)
+	}
+	if err := netlink.LinkDel(link); err != nil {
+		return fmt.Errorf("failed to delete bridge %s: %v", bridge.Name, err)
+	}
+	return nil
+}
 
+func DeleteBridge(bridge testbed.Bridge) error {
+	if err := deleteBridge(bridge); err != nil {
+		return err
 	}
 	return nil
 }
@@ -190,6 +201,57 @@ func setupVethPair(vethPair testbed.VethPair) error {
 func SetupVethPairs(vethPairs []testbed.VethPair) error {
 	for _, v := range vethPairs {
 		if err := setupVethPair(v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GetBridgeInterfaces(bridge testbed.Bridge) ([]netlink.Link, error) {
+	// Find the bridge interface by name
+	b, err := netlink.LinkByName(bridge.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find bridge %s: %v", bridge.Name, err)
+	}
+
+	// Ensure the link is of type bridge
+	if b.Type() != "bridge" {
+		return nil, fmt.Errorf("link %s is not a bridge", bridge.Name)
+	}
+
+	// Get a list of all links
+	allLinks, err := netlink.LinkList()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list links: %v", err)
+	}
+
+	var bridgeLinks []netlink.Link
+	// Iterate over all links and check their master
+	for _, link := range allLinks {
+		if link.Attrs().MasterIndex == b.Attrs().Index {
+			bridgeLinks = append(bridgeLinks, link)
+		}
+	}
+	return bridgeLinks, nil
+}
+
+// DetachInterfaceFromBridge detaches an interface from a specified bridge
+func DetachInterfaceFromBridge(iface netlink.Link) error {
+	// Detach the interface from the bridge
+	if err := netlink.LinkSetNoMaster(iface); err != nil {
+		return fmt.Errorf("failed to detach interface %s from bridge: %v", iface.Attrs().Name, err)
+	}
+
+	return nil
+}
+
+func DetachAllInterfacesFromBridge(bridge testbed.Bridge) error {
+	interfaces, err := GetBridgeInterfaces(bridge)
+	if err != nil {
+		return err
+	}
+	for _, iface := range interfaces {
+		if err := DetachInterfaceFromBridge(iface); err != nil {
 			return err
 		}
 	}
