@@ -36,80 +36,103 @@ var Cmd = &cobra.Command{
 				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				return
 			}
+
+			// Unmarshal the config into the Config struct
+			err = viper.Unmarshal(&testbed)
+			if err != nil {
+				log.Fatalf("Unable to decode into struct %v", err)
+			}
+			err = vl.ValidateConfiguration(testbed)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				return
+			}
+			// Print the Config struct to see if the data is loaded correctly
+			fmt.Printf("Testbed: %+v\n", testbed)
+			// Get all settings as a map
+			// settings := viper.AllSettings()
+
+			// Print the settings
+			// fmt.Printf("Config values: \n")
+			// for key, value := range settings {
+			// fmt.Printf("%s : %v\n", key, value)
+			// }
+
+			// create namespaces
+			// Lock the OS thread to ensure namespace operations are consistent
+			runtime.LockOSThread()
+			defer runtime.UnlockOSThread()
+
+			// Save the current network namespace because the CreateNamespace will move
+			// the context on the created namespace
+
+			// TODO actually I don't think that this is needed.. only the defer close
+			// in the CreateNamespace should be the correct way
+			origNS, err := netnsv.Get()
+			if err != nil {
+				log.Fatalf("Failed to get current network namespace: %v", err)
+			}
+			defer origNS.Close()
+			// loop to delete all existing namespaces and then create new ones
+			// TODO check if anothe logic can be implemented and chosen by the user in some way
+			for _, nsName := range testbed.Namespaces {
+				if err := netns.DeleteNamespace(nsName.Name); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+				if err := netns.CreateNamespace(nsName.Name); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+			// Switch back to the original namespace
+			err = netnsv.Set(origNS)
+			if err != nil {
+				log.Fatalf("Failed to switch back to the original network namespace: %v", err)
+			}
+
+			// create veth pairs
+			for _, vethPair := range testbed.VethPairs {
+				if err := netlink.CreateVethPair(vethPair); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+
+			// set veths ns
+			for _, vethPair := range testbed.VethPairs {
+				if err := netlink.SetVethPairNs(vethPair); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+			// create bridges
+			for _, bridge := range testbed.Bridges {
+				if err := netlink.CreateBridge(bridge); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+
+			// set bridges
+			for _, bridge := range testbed.Bridges {
+				if err := netlink.SetUpAndAttachInterfacesToBridge(bridge); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+
+			// set up veths
+			for _, vethPair := range testbed.VethPairs {
+				if err := netlink.SetVethPairUp(vethPair); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
+
+			// add address to veths
+			for _, vethPair := range testbed.VethPairs {
+				if err := netlink.AddAddressVethPair(vethPair); err != nil {
+					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
+			}
 		} else {
 			_, _ = fmt.Fprintf(os.Stderr, "Error: flag --file must be used. \n"+
 				"See 'netnscli create --help' for help and examples.\n")
 			return
-		}
-		// Unmarshal the config into the Config struct
-		err := viper.Unmarshal(&testbed)
-		if err != nil {
-			log.Fatalf("Unable to decode into struct %v", err)
-		}
-		err = vl.ValidateConfiguration(testbed)
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			return
-		}
-		// Print the Config struct to see if the data is loaded correctly
-		fmt.Printf("Testbed: %+v\n", testbed)
-		// Get all settings as a map
-		// settings := viper.AllSettings()
-
-		// Print the settings
-		// fmt.Printf("Config values: \n")
-		// for key, value := range settings {
-		// fmt.Printf("%s : %v\n", key, value)
-		// }
-
-		// create namespaces
-		// Lock the OS thread to ensure namespace operations are consistent
-		runtime.LockOSThread()
-		defer runtime.UnlockOSThread()
-
-		// Save the current network namespace because the CreateNamespace will move
-		// the context on the created namespace
-
-		// TODO actually I don't think that this is needed.. only the defer close
-		// in the CreateNamespace should be the correct way
-		origNS, err := netnsv.Get()
-		if err != nil {
-			log.Fatalf("Failed to get current network namespace: %v", err)
-		}
-		defer origNS.Close()
-		// loop to delete all existing namespaces and then create new ones
-		// TODO check if anothe logic can be implemented and chosen by the user in some way
-		for _, nsName := range testbed.Namespaces {
-			if err := netns.DeleteNamespace(nsName.Name); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-			if err := netns.CreateNamespace(nsName.Name); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-		}
-		// Switch back to the original namespace
-		err = netnsv.Set(origNS)
-		if err != nil {
-			log.Fatalf("Failed to switch back to the original network namespace: %v", err)
-		}
-
-		// create and set up veths
-		for _, vethPair := range testbed.VethPairs {
-			if err := netlink.CreateVethPair(vethPair); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-		}
-
-		// create bridge
-		for _, bridge := range testbed.Bridges {
-			if err := netlink.CreateBridge(bridge); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-		}
-
-		// set up veths
-		if err := netlink.SetupVethPairs(testbed.VethPairs); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
 	},
 }
