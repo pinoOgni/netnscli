@@ -25,7 +25,7 @@ type Namespace struct {
 
 type Configuration struct {
 	Namespaces   []Namespace `yaml:"namespaces" mapstructure:"namespaces" validate:"required"`
-	VethPairs    []VethPair  `mapstructure:"veth_pairs"`
-	Bridges      []Bridge    `mapstructure:"bridges"`
-	IPForwarding bool        `mapstructure:"ip_forwarding"`
+	VethPairs    []VethPair  `mapstructure:"veth_pairs" validate:"-"`
+	Bridges      []Bridge    `mapstructure:"bridges" validate:"-"`
+	IPForwarding bool        `mapstructure:"ip_forwarding" validate:"-"`
 }

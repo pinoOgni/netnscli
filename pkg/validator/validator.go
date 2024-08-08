@@ -16,9 +16,9 @@ func ValidateConfiguration(configuration interface{}) error {
 	// Validate the Config struct
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	if err := RegisterValidations(validate); err != nil {
-		return err
-	}
+	// if err := RegisterValidations(validate); err != nil {
+	// return err
+	// }
 	err := validate.Struct(configuration)
 	if err != nil {
 		// Handle validation errors
