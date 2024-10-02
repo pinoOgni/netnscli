@@ -75,6 +75,9 @@ var Cmd = &cobra.Command{
 			defer origNS.Close()
 			// loop to delete all existing namespaces and then create new ones
 			// TODO check if anothe logic can be implemented and chosen by the user in some way
+
+			// TODO aldo comment --force to delete the existing namespace
+			// default does not delete it
 			for _, nsName := range testbed.Namespaces {
 				if err := netns.DeleteNamespace(nsName.Name); err != nil {
 					_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)

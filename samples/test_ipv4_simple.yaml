@@ -5,13 +5,6 @@ namespaces:
     description: "Namespace 2"
   - name: ns3
     description: "Namespace 3"
-  - name: ns4
-    description: "Namespace 3"
-  - name: ns5
-    description: "Namespace 3"
-  - name: ns6
-    description: "Namespace 3"
-
 
 veth_pairs:
   - name: veth-ns1-bridge
@@ -43,29 +36,12 @@ veth_pairs:
     p2_name: veth-ns3-ns1
     p2_ip_address: 192.168.2.2/24
 
-  - name: veth-ns4-ns5
-    p1_ns: ns4
-    p1_name: veth-ns4-ns5
-    p1_ip_address: 192.169.2.1/24
-    p2_ns: ns5
-    p2_name: veth-ns5-ns4
-    p2_ip_address: 192.169.2.2/24
-
-  - name: veth-ns4-ns6
-    p1_ns: ns4
-    p1_name: veth-ns4-ns6
-    p1_ip_address: 192.170.2.1/24
-    p2_ns: ns6
-    p2_name: veth-ns6-ns4
-    p2_ip_address: 192.170.2.2/24
-
-
 bridges:
-  - name: br0
+  - name: bridge0
     description: "Bridge for connecting ns1, ns2, and ns3"
     interfaces:
       - veth-bridge-ns3
-  - name: br1
+  - name: bridge1
     description: "Bridge for connecting ns1, ns2, and ns3"
     interfaces:
       - veth-bridge-ns1
