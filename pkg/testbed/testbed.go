@@ -29,3 +29,5 @@ type Configuration struct {
 	Bridges      []Bridge    `mapstructure:"bridges" validate:"-"`
 	IPForwarding bool        `mapstructure:"ip_forwarding" validate:"-"`
 }
+
+// TODO add macvaln type

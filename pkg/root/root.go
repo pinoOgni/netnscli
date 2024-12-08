@@ -1,14 +1,11 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
-package cmd
+package root
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/pinoOgni/netnscli/cmd/create"
-	"github.com/pinoOgni/netnscli/cmd/delete"
+	"github.com/pinoOgni/netnscli/pkg/create"
+	"github.com/pinoOgni/netnscli/pkg/delete"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,12 +24,12 @@ netnscli creates and manages local network testbed
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "netnscli",
-	Short: "netnscli creates and manages local network testbed			   ",
+	Short: "netnscli creates a local network testbed",
 	Long:  logo,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := cmd.Help()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			return
 		}
 	},
@@ -53,7 +50,7 @@ func init() {
 	cmdFlags := rootCmd.PersistentFlags()
 	err := viper.BindPFlags(cmdFlags)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		return
 	}
 }

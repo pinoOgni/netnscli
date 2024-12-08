@@ -11,30 +11,34 @@ import (
 
 const bindMountPath = "/run/netns"
 
-// CreaetNamespace creates a named namespace
-func CreateNamespace(nsName string) error {
+// Add adds a network namespace
+func Add(nsName string) error {
 	ns, err := netns.NewNamed(nsName)
-	defer ns.Close()
+	defer func() {
+		if err := ns.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			return
+		}
+	}()
 	if err != nil {
-		return fmt.Errorf("cannot create namespace: %v", err)
+		return fmt.Errorf("cannot add namespace: %v", err)
 	}
 	return nil
 }
 
-// namespaceExists checks if a namespace exists
+// namespaceExists checks if a network namespace exist
 func namespaceExists(name string) (bool, error) {
 	nsPath := path.Join(bindMountPath, name)
 	if _, err := os.Stat(nsPath); os.IsNotExist(err) {
-		return false, nil // Namespace does not exist
+		return false, nil // network namespace does not exist
 	} else if err != nil {
-		return false, err // Other error occurred
+		return false, err // other errors
 	}
-	return true, nil // Namespace exists
+	return true, nil // network namespace exists
 }
 
-// unmountNamespace tries to unmount a namespace
+// unmountNamespace tries to unmount a network namespace
 func unmountNamespace(nsPath string) error {
-	// Try to unmount the namespace
 	if err := unix.Unmount(nsPath, unix.MNT_DETACH); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to unmount namespace %s: %w", nsPath, err)
 	}
@@ -58,7 +62,7 @@ func deleteNamespace(name string) error {
 	return nil
 }
 
-// DeleteNamespace first check if a namespace exists and then delete it
+// DeleteNamespace first checks if a network namespace exists and then deletes it.
 func DeleteNamespace(nsName string) error {
 	exists, err := namespaceExists(nsName)
 	if err != nil {

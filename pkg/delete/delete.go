@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package delete
 
 import (
@@ -9,9 +6,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/pinoOgni/netnscli/internal/netlink"
+	"github.com/pinoOgni/netnscli/internal/netns"
 	"github.com/pinoOgni/netnscli/pkg/flags"
-	"github.com/pinoOgni/netnscli/pkg/netlink"
-	"github.com/pinoOgni/netnscli/pkg/netns"
 	"github.com/pinoOgni/netnscli/pkg/testbed"
 	vl "github.com/pinoOgni/netnscli/pkg/validator"
 	"github.com/spf13/cobra"
@@ -20,12 +17,15 @@ import (
 
 var (
 	cfgFile string
+	// ErrDeleetLocalTestbed is returned when the deletion of the local testbed fails
+
+	ErrDeleteLocalTestbed = fmt.Errorf("failed to delete local testbed")
 )
 
 // Cmd represents the delete command
 var Cmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Deete a local network testbed",
+	Short: "Delete a local network testbed",
 	Long:  `Starting from a yaml configuration file it deletes a local network testbed`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO move this part and the one in the create command in a pkg
@@ -33,11 +33,11 @@ var Cmd = &cobra.Command{
 		if cmd.Flags().Changed(flags.File) {
 			err := viper.ReadInConfig()
 			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 				return
 			}
 		} else {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: flag --file must be used. \n"+
+			_, _ = fmt.Fprintf(os.Stderr, "error: flag --file must be used. \n"+
 				"See 'netnscli create --help' for help and examples.\n")
 			return
 		}
@@ -48,7 +48,7 @@ var Cmd = &cobra.Command{
 		}
 		err = vl.ValidateConfiguration(testbed)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			return
 		}
 		// Print the Config struct to see if the data is loaded correctly
@@ -59,26 +59,34 @@ var Cmd = &cobra.Command{
 		runtime.LockOSThread()
 		defer runtime.UnlockOSThread()
 
-		// delete all namespaces
-		for _, nsName := range testbed.Namespaces {
-			if err := netns.DeleteNamespace(nsName.Name); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-		}
-		// detach all interfaces from bridges
-		for _, bridge := range testbed.Bridges {
-			if err := netlink.DetachAllInterfacesFromBridge(bridge); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-
-			}
-		}
-		// delete bridges
-		for _, bridge := range testbed.Bridges {
-			if err := netlink.DeleteBridge(bridge); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
+		if err := deleteLocalTestbed(&testbed); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			return
 		}
 	},
+}
+
+func deleteLocalTestbed(testbed *testbed.Configuration) error {
+	// delete all namespaces
+	for _, nsName := range testbed.Namespaces {
+		if err := netns.DeleteNamespace(nsName.Name); err != nil {
+			return fmt.Errorf("%w: %v", ErrDeleteLocalTestbed, err)
+		}
+	}
+	// detach all interfaces from bridges
+	for _, bridge := range testbed.Bridges {
+		if err := netlink.DetachAllInterfacesFromBridge(bridge); err != nil {
+			return fmt.Errorf("%w: %v", ErrDeleteLocalTestbed, err)
+
+		}
+	}
+	// delete bridges
+	for _, bridge := range testbed.Bridges {
+		if err := netlink.DeleteBridge(bridge); err != nil {
+			return fmt.Errorf("%w: %v", ErrDeleteLocalTestbed, err)
+		}
+	}
+	return nil
 }
 
 func init() {
@@ -86,11 +94,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	Cmd.Flags().StringVarP(&cfgFile, "file", "f", "", "config file is required")
 	if err := viper.BindPFlag("file", Cmd.Flag("file")); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error: unable to bind flag file %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error: unable to bind flag file %v\n", err)
 	}
 	// Bind all persistent flags to viper
 	if err := viper.BindPFlags(Cmd.PersistentFlags()); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 	}
 }
 

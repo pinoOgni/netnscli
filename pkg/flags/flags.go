@@ -1,5 +1,6 @@
 package flags
 
 const (
-	File = "file"
+	File  = "file"
+	Force = "force"
 )
