@@ -1,0 +1,30 @@
+ifeq ("$(origin V)", "command line")
+	VERBOSE = $(V)
+endif
+ifndef VERBOSE
+	VERBOSE = 0
+endif
+
+ifeq ($(VERBOSE),0)
+	Q = @
+	msg = @printf '  %-8s %s%s\n'								\
+			"$(1)"												\
+			"$(patsubst $(abspath $(OUTPUT_DIR))/%,%,$(2))"		\
+			"$(if $(3), $(3))";
+	MAKEFLAGS += --no-print-directory
+else
+	Q =
+	msg =
+endif
+
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
+SHELL = /usr/bin/env bash -o pipefail
+.SHELLFLAGS = -ec
+
+empty :=
+SEPARATOR_COMMA := $(empty),$(empty)
+SEPARATOR_SPACE := $(empty) $(empty)
+SEPARATOR_COMMA_QUOTE := '", "'
+JOIN_WITH_COMMA = $(subst $(SEPARATOR_SPACE),$(SEPARATOR_COMMA),$(strip $1))
+#JOIN_WITH_COMMA := $(subst $(SEPARATOR_COMMA),$(SEPARATOR_SPACE),$1)

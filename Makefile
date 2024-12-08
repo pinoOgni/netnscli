@@ -1,24 +1,53 @@
-# Define the output directory and binary name
+include Makefile.defs
+
+GO := go
+GO_VERSION := $(shell cat GO_VERSION)
+GO_NATIVE_OS := $(shell $(GO) env GOOS)
+GO_NATIVE_ARCH := $(shell $(GO) env GOARCH)
+GOOS ?= $(GO_NATIVE_OS)
+GOARCH ?= $(GO_NATIVE_ARCH)
+ifeq ($(GOOS),)
+	GOOS := linux
+endif
+ifeq ($(GOACH),)
+	GOARCH := amd64
+endif
+
+GO_BUILD_FLAGS =
+GO_BUILD_TAGS =
+GO_BUILD_FLAGS += -tags="$(call JOIN_WITH_COMMA,$(GO_BUILD_TAGS))"
+
+### Base directories ###
+CMD_DIR := cmd
 BIN_DIR := bin
-BINARY := netnscli
+OUTPUT_DIR = .output
+RELEASE_DIR := release
+OUTPUT_DIRS := $(BIN_DIR) $(TOOLS_DIR) $(OUTPUT_DIR) $(RELEASE_DIR)
+SCRIPTS_DIR := scripts
+BIN := netnscli
 
-# Define the Go build command
-BUILD_CMD := go build -a -o $(BIN_DIR)/$(BINARY)
 
-# Default target to build the binary
-all: build
+.PHONY: help all clean
+all: help
 
-# Target to build the binary
+clean-all: clean-build
+
+clean-build:
+	rm ${BIN_DIR}
+
 build:
-	@mkdir -p $(BIN_DIR)
-	$(BUILD_CMD)
+	$(call msg,BUILD,$@)
+	$(Q) GO=$(GO) GOOS=$(GOOS) GOARCH=$(GOARCH) GO_BUILD_FLAGS='$(GO_BUILD_FLAGS)' BIN=$(BIN) \
+		 $(SCRIPTS_DIR)/bin_build_netnscli.sh
 
-# Target to clean the build artifacts
-clean:
-	@rm -rf $(BIN_DIR)
-
-# Target to run the binary
 run: build
-	$(BIN_DIR)/$(BINARY)
+	./${BIN_DIR}/${BIN}
 
-.PHONY: all build clean run
+help:
+	@echo "Make Targets:"
+	@echo " build		- build the Netnscli"
+	@echo " run			- build and run the Netnscli"
+	@echo " clean-build	- clean the Netnscli build"
+	@echo " clean-all	- clean the Netnscli build and release"
+	@echo ""
+# TODO release
