@@ -38,11 +38,11 @@ veth_pairs:
 
 bridges:
   - name: bridge0
-    description: "Bridge for connecting ns1, ns2, and ns3"
+    description: "Bridge for connecting and ns3"
     interfaces:
       - veth-bridge-ns3
   - name: bridge1
-    description: "Bridge for connecting ns1, ns2, and ns3"
+    description: "Bridge for connecting ns1, ns2"
     interfaces:
       - veth-bridge-ns1
       - veth-bridge-ns2
