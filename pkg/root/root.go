@@ -6,6 +6,7 @@ import (
 
 	"github.com/pinoOgni/netnscli/pkg/create"
 	"github.com/pinoOgni/netnscli/pkg/delete"
+	"github.com/pinoOgni/netnscli/pkg/script"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -47,6 +48,7 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(create.Cmd)
 	rootCmd.AddCommand(delete.Cmd)
+	rootCmd.AddCommand(script.Cmd)
 	cmdFlags := rootCmd.PersistentFlags()
 	err := viper.BindPFlags(cmdFlags)
 	if err != nil {
