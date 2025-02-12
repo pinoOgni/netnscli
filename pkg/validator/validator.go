@@ -6,19 +6,12 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-const (
-// validationTagEndpointPort = "endpoint_port"
-)
-
-// TODO fix it, it does not work
+// TODO: Must be tested properly.
 // ValidateConfiguration takes a configuration and validates it using the tags defined in the struct
 func ValidateConfiguration(configuration interface{}) error {
 	// Validate the Config struct
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	// if err := RegisterValidations(validate); err != nil {
-	// return err
-	// }
 	err := validate.Struct(configuration)
 	if err != nil {
 		// Handle validation errors
@@ -30,13 +23,5 @@ func ValidateConfiguration(configuration interface{}) error {
 			}
 		}
 	}
-	return nil
-}
-
-// RegisterValidations registers custom validations
-func RegisterValidations(validate *validator.Validate) error {
-	// if err := validate.RegisterValidation(validationTagEndpointPort, validateEndpointPort); err != nil {
-	// return fmt.Errorf("cannot register validatation validationTagEndpointPort: %v", err)
-	// }
 	return nil
 }

@@ -52,9 +52,9 @@ var Cmd = &cobra.Command{
 			return
 		}
 		// Print the Config struct to see if the data is loaded correctly
-		fmt.Printf("Testbed: %+v\n", testbed)
+		//fmt.Printf("Testbed: %+v\n", testbed)
 
-		// TODO is this needed??
+		// TODO is this needed?
 		// Lock the OS thread to ensure namespace operations are consistent
 		runtime.LockOSThread()
 		defer runtime.UnlockOSThread()

@@ -51,7 +51,7 @@ var Cmd = &cobra.Command{
 				return
 			}
 			// TODO debug: print the Config struct to see if the data is loaded correctly
-			fmt.Printf("Testbed: %+v\n", testbed)
+			//fmt.Printf("Testbed: %+v\n", testbed)
 
 			// Note: leave it for debug purpose
 			// Get all settings as a map

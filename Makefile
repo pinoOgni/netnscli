@@ -46,7 +46,7 @@ run: build
 help:
 	@echo "Make Targets:"
 	@echo " build		- build the Netnscli"
-	@echo " run			- build and run the Netnscli"
+	@echo " run		- build and run the Netnscli"
 	@echo " clean-build	- clean the Netnscli build"
 	@echo " clean-all	- clean the Netnscli build and release"
 	@echo ""
