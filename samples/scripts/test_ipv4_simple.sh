@@ -6,6 +6,8 @@ ip netns add ns3
 # Veth pair between ns1 and bridge
 ip link add veth-ns1 type veth peer name veth-bridge-ns1
 ip link set veth-ns1 netns ns1
+ip netns exec ns1 ip addr add 192.168.1.1/24 dev veth-ns1
+ip netns exec ns1 ip link set veth-ns1 up
 
 # Veth pair between ns2 and bridge
 ip link add veth-ns2 type veth peer name veth-bridge-ns2
@@ -41,8 +43,7 @@ ip link set veth-bridge-ns3 up
 
 
 # ns1
-ip netns exec ns1 ip addr add 192.168.1.1/24 dev veth-ns1
-ip netns exec ns1 ip link set veth-ns1 up
+
 
 ip netns exec ns1 ip addr add 192.168.2.1/24 dev veth-ns1-ns3
 ip netns exec ns1 ip link set veth-ns1-ns3 up

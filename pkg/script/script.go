@@ -189,12 +189,12 @@ func createScriptFile(testbed *testbed.Configuration) error {
 	// Create veth pairs and set them in namespaces
 	buffer.WriteString("\n# create veth pairs and set them to the correct ns\n")
 	for _, vethPair := range testbed.VethPairs {
-		buffer.WriteString(fmt.Sprintf("ip link add %s type veth peer name %s\n", vethPair.P1Name, vethPair.P2Name))
-		if vethPair.P1Namespace != defaultNs {
-			buffer.WriteString(fmt.Sprintf("ip link set %s netns %s\n", vethPair.P1Name, vethPair.P1Namespace))
+		buffer.WriteString(fmt.Sprintf("ip link add %s type veth peer name %s\n", vethPair.P1.Name, vethPair.P2.Name))
+		if vethPair.P1.Namespace != defaultNs {
+			buffer.WriteString(fmt.Sprintf("ip link set %s netns %s\n", vethPair.P1.Name, vethPair.P1.Namespace))
 		}
-		if vethPair.P2Namespace != defaultNs {
-			buffer.WriteString(fmt.Sprintf("ip link set %s netns %s\n", vethPair.P2Name, vethPair.P2Namespace))
+		if vethPair.P2.Namespace != defaultNs {
+			buffer.WriteString(fmt.Sprintf("ip link set %s netns %s\n", vethPair.P2.Name, vethPair.P2.Namespace))
 		}
 		buffer.WriteString("\n")
 	}
@@ -218,34 +218,34 @@ func createScriptFile(testbed *testbed.Configuration) error {
 	// Bring up the veth interfaces in the default namespace
 	buffer.WriteString("\n# bring up the veth interfaces in the default namespace\n")
 	for _, vethPair := range testbed.VethPairs {
-		if vethPair.P1Namespace == defaultNs {
-			buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P1Name))
+		if vethPair.P1.Namespace == defaultNs {
+			buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P1.Name))
 		}
-		if vethPair.P2Namespace == defaultNs {
-			buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P2Name))
+		if vethPair.P2.Namespace == defaultNs {
+			buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P2.Name))
 		}
 	}
 
 	// Add addresses to veths and set them up
 	buffer.WriteString("\n# add addresses to veths and set them up\n")
 	for _, vethPair := range testbed.VethPairs {
-		if vethPair.P1IPAddress != "" {
-			if vethPair.P1Namespace != defaultNs {
-				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip addr add %s dev %s\n", vethPair.P1Namespace, vethPair.P1IPAddress, vethPair.P1Name))
-				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip link set %s up\n", vethPair.P1Namespace, vethPair.P1Name))
+		if vethPair.P1.Address != "" {
+			if vethPair.P1.Namespace != defaultNs {
+				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip addr add %s dev %s\n", vethPair.P1.Namespace, vethPair.P1.Address, vethPair.P1.Name))
+				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip link set %s up\n", vethPair.P1.Namespace, vethPair.P1.Name))
 			} else {
-				buffer.WriteString(fmt.Sprintf("ip addr add %s dev %s\n", vethPair.P1IPAddress, vethPair.P1Name))
-				buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P1Name))
+				buffer.WriteString(fmt.Sprintf("ip addr add %s dev %s\n", vethPair.P1.Address, vethPair.P1.Name))
+				buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P1.Name))
 			}
 			buffer.WriteString("\n")
 		}
-		if vethPair.P2IPAddress != "" {
-			if vethPair.P2Namespace != defaultNs {
-				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip addr add %s dev %s\n", vethPair.P2Namespace, vethPair.P2IPAddress, vethPair.P2Name))
-				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip link set %s up\n", vethPair.P2Namespace, vethPair.P2Name))
+		if vethPair.P2.Address != "" {
+			if vethPair.P2.Namespace != defaultNs {
+				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip addr add %s dev %s\n", vethPair.P2.Namespace, vethPair.P2.Address, vethPair.P2.Name))
+				buffer.WriteString(fmt.Sprintf("ip netns exec %s ip link set %s up\n", vethPair.P2.Namespace, vethPair.P2.Name))
 			} else {
-				buffer.WriteString(fmt.Sprintf("ip addr add %s dev %s\n", vethPair.P2IPAddress, vethPair.P2Name))
-				buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P2Name))
+				buffer.WriteString(fmt.Sprintf("ip addr add %s dev %s\n", vethPair.P2.Address, vethPair.P2.Name))
+				buffer.WriteString(fmt.Sprintf("ip link set %s up\n", vethPair.P2.Name))
 			}
 			buffer.WriteString("\n")
 		}

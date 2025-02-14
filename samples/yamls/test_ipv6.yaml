@@ -8,33 +8,41 @@ namespaces:
 
 veth_pairs:
   - name: veth-ns1-bridge
-    p1_ns: ns1
-    p1_name: veth-ns1
-    p1_ip_address: fd00:1::1/64
-    p2_ns: default
-    p2_name: veth-bridge-ns1
+    p1:
+      namespace: ns1
+      name: veth-ns1
+      address: fd00:1::1/64
+    p2:
+      namespace: default
+      name: veth-bridge-ns1
 
   - name: veth-ns2-bridge
-    p1_ns: ns2
-    p1_name: veth-ns2
-    p1_ip_address: fd00:1::2/64
-    p2_ns: default
-    p2_name: veth-bridge-ns2
+    p1:
+      namespace: ns2
+      name: veth-ns2
+      address: fd00:1::2/64
+    p2:
+      namespace: default
+      name: veth-bridge-ns2
 
   - name: veth-ns3-bridge
-    p1_ns: ns3
-    p1_name: veth-ns3
-    p1_ip_address: fd00:1::3/64
-    p2_ns: default
-    p2_name: veth-bridge-ns3
+    p1:
+      namespace: ns3
+      name: veth-ns3
+      address: fd00:1::3/64
+    p2:
+      namespace: default
+      name: veth-bridge-ns3
 
   - name: veth-ns1-ns3
-    p1_ns: ns1
-    p1_name: veth-ns1-ns3
-    p1_ip_address: fd00:2::1/64
-    p2_ns: ns3
-    p2_name: veth-ns3-ns1
-    p2_ip_address: fd00:2::2/64
+    p1:
+      namespace: ns1
+      name: veth-ns1-ns3
+      address: fd00:2::1/64
+    p2:
+      namespace: ns3
+      name: veth-ns3-ns1
+      address: fd00:2::2/64
 
 bridges:
   - name: br0
