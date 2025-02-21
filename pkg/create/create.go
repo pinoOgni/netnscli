@@ -20,8 +20,8 @@ var (
 	ErrCreateLocalTestbed = fmt.Errorf("failed to create local testbed")
 )
 
-// CreateCommand represents the create command
-var CreateCommand = &cobra.Command{
+// Cmd represents the create command
+var Cmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a local network testbed",
 	Long:  `Starting from a yaml configuration it creates a local network testbed.`,
@@ -52,11 +52,11 @@ var CreateCommand = &cobra.Command{
 }
 
 func init() {
-	CreateCommand.Flags().StringVarP(&configurationFilePath, "file", "f", "", "path of the config file")
-	if err := CreateCommand.MarkFlagRequired("file"); err != nil {
+	Cmd.Flags().StringVarP(&configurationFilePath, "file", "f", "", "path of the config file")
+	if err := Cmd.MarkFlagRequired("file"); err != nil {
 		panic("Configuration file is required")
 	}
 
 	// Add the --force flag
-	CreateCommand.Flags().Bool("force", false, "force the deletion of namespaces")
+	Cmd.Flags().Bool("force", false, "force the deletion of namespaces")
 }

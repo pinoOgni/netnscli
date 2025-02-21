@@ -43,7 +43,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(create.CreateCommand)
+	rootCmd.AddCommand(create.Cmd)
 	rootCmd.AddCommand(delete.Cmd)
 	rootCmd.AddCommand(script.Cmd)
 
