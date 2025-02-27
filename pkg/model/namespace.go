@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/pinoOgni/netnscli/pkg/model/iface"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netns"
 )
@@ -22,6 +23,8 @@ type Namespace struct {
 	Name        string `yaml:"name" validate:"required"` // TODO add tag and regex validation
 	Description string `yaml:"description"`
 }
+
+var _ iface.NetworkElement = &Namespace{}
 
 // Create instantiate the new namespace in the system
 func (n Namespace) Create() error {
