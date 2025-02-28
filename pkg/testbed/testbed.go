@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/pinoOgni/netnscli/pkg/model"
-	"github.com/pinoOgni/netnscli/pkg/model/iface"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,8 +32,8 @@ func FromFile(path string) *Configuration {
 	return &config
 }
 
-func (c *Configuration) networkNodes() []iface.NetworkElement {
-	nodes := []iface.NetworkElement{}
+func (c *Configuration) networkNodes() []model.NetworkElement {
+	nodes := []model.NetworkElement{}
 
 	for _, ns := range c.Namespaces {
 		nodes = append(nodes, ns)

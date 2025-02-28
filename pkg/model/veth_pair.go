@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pinoOgni/netnscli/pkg/model/iface"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
@@ -19,7 +18,7 @@ type VethPair struct {
 	P2 Interface `yaml:"p2"`
 }
 
-var _ iface.NetworkElement = &VethPair{}
+var _ NetworkElement = &VethPair{}
 
 // Interface represents a single interface of the veth couple
 type Interface struct {

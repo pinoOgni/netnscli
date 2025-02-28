@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 
-	"github.com/pinoOgni/netnscli/pkg/model/iface"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 )
@@ -19,7 +18,7 @@ type Bridge struct {
 	Interfaces  []string `yaml:"interfaces"`
 }
 
-var _ iface.NetworkElement = &Bridge{}
+var _ NetworkElement = &Bridge{}
 
 // getFromSystem gets the bridge from the system by its name
 func (b Bridge) getFromSystem() (netlink.Link, error) {
