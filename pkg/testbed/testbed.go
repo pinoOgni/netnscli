@@ -1,33 +1,92 @@
 package testbed
 
-// VethPair represents a pair of veth interfaces
-type VethPair struct {
-	Name        string `mapstructure:"name"`
-	P1Namespace string `mapstructure:"p1_ns"`
-	P1Name      string `mapstructure:"p1_name"`
-	P1IPAddress string `yaml:"p1_ip_address" mapstructure:"p1_ip_address" validate:"ipv4,ipv6"`
-	P2Namespace string `mapstructure:"p2_ns"`
-	P2Name      string `mapstructure:"p2_name"`
-	P2IPAddress string `yaml:"p2_ip_address" mapstructure:"p2_ip_address" validate:"ipv4,ipv6"`
-}
+import (
+	"fmt"
+	"log"
+	"os"
 
-// Bridge represents a network bridge
-type Bridge struct {
-	Name        string   `mapstructure:"name"`
-	Description string   `mapstructure:"description"`
-	Interfaces  []string `mapstructure:"interfaces"`
-}
-
-type Namespace struct {
-	Name        string `yaml:"name" mapstructure:"name" validate:"required"` // TODO add tag and regex validation
-	Description string `yaml:"description" mapstructure:"description"`
-}
+	"github.com/pinoOgni/netnscli/pkg/model"
+	"gopkg.in/yaml.v3"
+)
 
 type Configuration struct {
-	Namespaces   []Namespace `yaml:"namespaces" mapstructure:"namespaces" validate:"required"`
-	VethPairs    []VethPair  `mapstructure:"veth_pairs" validate:"-"`
-	Bridges      []Bridge    `mapstructure:"bridges" validate:"-"`
-	IPForwarding bool        `mapstructure:"ip_forwarding" validate:"-"`
+	Namespaces   []model.Namespace `yaml:"namespaces" validate:"required"`
+	VethPairs    []model.VethPair  `yaml:"veth_pairs"`
+	Bridges      []model.Bridge    `yaml:"bridges"`
+	IPForwarding bool              `yaml:"ip_forwarding"`
+}
+
+func FromFile(path string) *Configuration {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Error reading configuration file: %v", err)
+	}
+
+	// Unmarshal the YAML into the Configuration struct
+	var config Configuration
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		log.Fatalf("Error unmarshalling configuration file: %v", err)
+	}
+
+	return &config
+}
+
+func (c *Configuration) networkNodes() []model.NetworkElement {
+	nodes := []model.NetworkElement{}
+
+	for _, ns := range c.Namespaces {
+		nodes = append(nodes, ns)
+	}
+
+	for _, vp := range c.VethPairs {
+		nodes = append(nodes, vp)
+	}
+
+	for _, br := range c.Bridges {
+		nodes = append(nodes, br)
+	}
+
+	return nodes
+}
+
+func (c *Configuration) Apply() error {
+	testbedNodes := c.networkNodes()
+
+	for in := range testbedNodes {
+		node := testbedNodes[in]
+		if err := node.Create(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Configuration) Delete() error {
+	// delete all namespaces
+	if err := c.DeleteNamespaces(); err != nil {
+		return fmt.Errorf("%w: %v", fmt.Errorf("failed to delete namespaces"), err)
+	}
+
+	// delete bridges
+	for _, bridge := range c.Bridges {
+		if err := bridge.Delete(); err != nil {
+			return fmt.Errorf("%w: %v", fmt.Errorf("failed to delete local testbed"), err)
+		}
+	}
+
+	return nil
+}
+
+func (c *Configuration) DeleteNamespaces() error {
+	for _, namespace := range c.Namespaces {
+		if err := namespace.Delete(); err != nil {
+			return fmt.Errorf("%w: %v", fmt.Errorf("failed to delete namespace"), err)
+		}
+	}
+
+	return nil
 }
 
 // TODO add macvaln type

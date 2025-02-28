@@ -1,14 +1,15 @@
 package root
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/pinoOgni/netnscli/pkg/create"
 	"github.com/pinoOgni/netnscli/pkg/delete"
+	"github.com/pinoOgni/netnscli/pkg/model"
 	"github.com/pinoOgni/netnscli/pkg/script"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/vishvananda/netns"
 )
 
 const (
@@ -22,18 +23,14 @@ netnscli creates and manages local network testbed
 `
 )
 
+var verbose bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "netnscli",
 	Short: "netnscli creates a local network testbed",
 	Long:  logo,
-	Run: func(cmd *cobra.Command, args []string) {
-		err := cmd.Help()
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			return
-		}
-	},
+	Run:   nil,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -49,10 +46,24 @@ func init() {
 	rootCmd.AddCommand(create.Cmd)
 	rootCmd.AddCommand(delete.Cmd)
 	rootCmd.AddCommand(script.Cmd)
-	cmdFlags := rootCmd.PersistentFlags()
-	err := viper.BindPFlags(cmdFlags)
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		return
+
+	rootCmd.PersistentFlags().BoolVar(&verbose, "debug", false, "Show a more verbose output logs")
+
+	cobra.OnInitialize(initLogger, initProgramNamespace)
+}
+
+func initLogger() {
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
 	}
+}
+
+func initProgramNamespace() {
+	namespaceHandle, err := netns.Get()
+	if err != nil {
+		panic("could not get the current namespace")
+	}
+	model.ProgramNamespace = namespaceHandle
 }

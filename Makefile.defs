@@ -7,7 +7,7 @@ endif
 
 ifeq ($(VERBOSE),0)
 	Q = @
-	msg = @printf '  %-8s %s%s\n'								\
+	msg = @printf '  %-8s %s%s'								\
 			"$(1)"												\
 			"$(patsubst $(abspath $(OUTPUT_DIR))/%,%,$(2))"		\
 			"$(if $(3), $(3))";
